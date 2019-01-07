@@ -28,8 +28,10 @@ loop do
     release_date = item.pubDate
     release_uid = Digest::MD5.hexdigest([release_id, release_date].to_json)
 
-    redis_key = format('seen:%s', release_uid)
-    redis.get(redis_key) ? next : redis.set(redis_key, 1)
+    next if redis.get(redis_key = format('seen:%s', release_uid))
+
+    redis.set(redis_key, 1)
+    redis.expire(redis_key, 60 * 60 * 24 * 7)
 
     next unless (meta = item.title.match(title_re))
 
