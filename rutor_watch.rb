@@ -33,6 +33,22 @@ loop do
     redis.set(redis_key, 1)
     redis.expire(redis_key, 60 * 60 * 24 * 7)
 
+    details = Nokogiri::HTML(item.description)
+
+    imdb_xpath = "//a/@href[contains(., 'imdb.com/title/')]"
+    kpdb_xpath = "//a/@href[contains(., 'kinopoisk.ru/film/')]"
+
+    imdb_id = details.at_xpath(imdb_xpath)&.value&.gsub(%r{.*/tt(\d+)/?$}, '\1')
+    kpdb_id = details.at_xpath(kpdb_xpath)&.value&.gsub(%r{.*/film/.*?-?(\d+)/?$}, '\1')
+
+    if imdb_id && kpdb_id
+      redis.setnx(format('imdb_ids:%s', kpdb_id), imdb_id)
+      redis.setnx(format('kpdb_ids:%s', imdb_id), kpdb_id)
+    else
+      imdb_id ||= redis.get(format('imdb_ids:%s', kpdb_id))
+      kpdb_id ||= redis.get(format('kpdb_ids:%s', imdb_id))
+    end
+
     next unless (meta = item.title.match(title_re))
 
     next if meta['label'] =~ /-(A|HE)VC/
