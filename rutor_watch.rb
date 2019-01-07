@@ -55,9 +55,8 @@ loop do
 
     details = Nokogiri::HTML(Faraday.get(item.link).body) rescue next
 
-    # FIXME: more specific xpath
-    size_text = details.xpath("//td[text()='Размер']/following-sibling::td").text
-    size = (size_text.gsub(/.*\((\d+) Bytes\).*/, '\1').to_f / 1024**3)
+    size_xpath = "//td[@class='header' and text()='Размер']/following-sibling::td"
+    size = (details.xpath(size_xpath).text.gsub(/.*\((\d+) Bytes\).*/, '\1').to_f) / 1024**3
 
     next unless (1..3).member?(size)
 
