@@ -1,6 +1,6 @@
 source 'https://rubygems.org'
 
-gem 'faraday'
+gem 'httpclient'
 gem 'json'
 gem 'nokogiri'
 gem 'redis'

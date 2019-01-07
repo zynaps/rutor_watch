@@ -2,7 +2,7 @@ require 'json'
 require 'digest'
 require 'redis'
 require 'redis-namespace'
-require 'faraday'
+require 'httpclient'
 require 'rss'
 require 'nokogiri'
 
@@ -21,7 +21,7 @@ title_re = %r{
 }x
 
 loop do
-  feed = RSS::Parser.parse(Faraday.get('http://rutor.info/rss.php?full=1').body)
+  feed = RSS::Parser.parse(HTTPClient.get_content('http://rutor.info/rss.php?full=1'))
 
   feed.items.each do |item|
     release_id = item.link.gsub(%r{.*/torrent/(\d+)}, '\1').to_i
@@ -53,7 +53,7 @@ loop do
 
     next if meta['label'] =~ /-(A|HE)VC/
 
-    details = Nokogiri::HTML(Faraday.get(item.link).body) rescue next
+    details = Nokogiri::HTML(HTTPClient.get_content(item.link)) rescue next
 
     size_xpath = "//td[@class='header' and text()='Размер']/following-sibling::td"
     size = (details.xpath(size_xpath).text.gsub(/.*\((\d+) Bytes\).*/, '\1').to_f) / 1024**3
