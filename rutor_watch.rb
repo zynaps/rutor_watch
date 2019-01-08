@@ -6,6 +6,23 @@ require 'httpclient'
 require 'rss'
 require 'nokogiri'
 
+def http_get(*args)
+  cache = Redis::Namespace.new('httpclient', redis: Redis.new)
+
+  cache_key = Digest::MD5.hexdigest(*args.to_json)
+
+  unless (body = cache.get(cache_key))
+    body = (response = HTTPClient.get(*args)).body rescue nil
+
+    if (200..299).member?(response.status)
+      cache.set(cache_key, body)
+      cache.expire(cache_key, 60 * 15)
+    end
+  end
+
+  body
+end
+
 redis = Redis::Namespace.new('feeds:rutor_watch', redis: Redis.new)
 
 redis.set('author', 'zynaps@zynaps.ru')
@@ -21,7 +38,7 @@ title_re = %r{
 }x
 
 loop do
-  feed = RSS::Parser.parse(HTTPClient.get_content('http://rutor.info/rss.php?full=1'))
+  feed = RSS::Parser.parse(http_get('http://rutor.info/rss.php?full=1', follow_redirect: true))
 
   feed.items.each do |item|
     release_id = item.link.gsub(%r{.*/torrent/(\d+)}, '\1').to_i
@@ -53,7 +70,7 @@ loop do
 
     next if meta['label'] =~ /-(A|HE)VC/
 
-    details = Nokogiri::HTML(HTTPClient.get_content(item.link)) rescue next
+    details = Nokogiri::HTML(http_get(item.link, follow_redirect: true)) rescue next
 
     size_xpath = "//td[@class='header' and text()='Размер']/following-sibling::td"
     size = (details.xpath(size_xpath).text.gsub(/.*\((\d+) Bytes\).*/, '\1').to_f) / 1024**3
