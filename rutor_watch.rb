@@ -84,6 +84,7 @@ loop do
     release['size'] = size
     release['versions'] = release['versions'].split(/[,|]+/).map(&:strip).join(', ')
     release['title'] = format('%s (%d) %s %s | %s | %1.2fGb', *release.values)
+    release['content'] = item.description
     release['url'] = item.link
     release['pub_date'] = release_date
     release['id'] = release_uid
