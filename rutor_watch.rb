@@ -23,11 +23,11 @@ def http_get(*args)
   body
 end
 
-redis = Redis::Namespace.new('feeds:rutor_watch', redis: Redis.new)
+redis = Redis::Namespace.new('feeder:rutor_filtered', redis: Redis.new)
 
 redis.set('author', 'zynaps@zynaps.ru')
 redis.set('about', 'http://rutor.info/kino')
-redis.set('title', 'rutor.info watch')
+redis.set('title', 'rutor filtered')
 
 title_re = %r{
   (?<titles>.*)\s+
