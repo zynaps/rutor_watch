@@ -89,7 +89,8 @@ loop do
     release['pub_date'] = release_date
     release['id'] = release_uid
 
-    redis.rpush('entries', release.to_json)
+    redis.lpush('entries', release.to_json)
+    redis.ltrim('entries', 0, 99)
 
     redis.set('updated', Time.now.to_s)
   end
