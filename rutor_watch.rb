@@ -38,20 +38,21 @@ title_re = %r{
   (?<versions>.*)
 }x
 
+def release_id_build(item)
+  Digest::MD5.hexdigest([item.link.gsub(%r{.*/torrent/(\d+)}, '\1'), item.pubDate].to_json)
+end
+
 loop do
   feed = RSS::Parser.parse(http_get('http://rutor.info/rss.php?full=1', follow_redirect: true))
 
   puts format('%s got %s feed items', Time.now.to_datetime.rfc3339, feed.items.size)
 
   feed.items.each do |item|
-    release_id = item.link.gsub(%r{.*/torrent/(\d+)}, '\1').to_i
-    release_date = item.pubDate
-    release_uid = Digest::MD5.hexdigest([release_id, release_date].to_json)
+    release_id = release_id_build(item)
 
-    next if redis.get(redis_key = format('seen:%s', release_uid))
+    next unless redis.setnx(seen_key = format('seen:%s', release_id), 1)
 
-    redis.set(redis_key, 1)
-    redis.expire(redis_key, 60 * 60 * 24 * 7)
+    redis.expire(seen_key, 60 * 60 * 24 * 7)
 
     puts format('%s new announce - %s', Time.now.to_datetime.rfc3339, item.link)
 
@@ -91,13 +92,13 @@ loop do
     release['title'] = format('%s (%d) %s %s | %s | %1.2fGb', *release.values)
     release['content'] = item.description
     release['link'] = item.link
-    release['updated'] = release_date
-    release['id'] = release_uid
+    release['updated'] = item.pubDate
+    release['id'] = release_id
 
     redis.lpush('entries', release.to_json)
     redis.ltrim('entries', 0, 99)
 
-    puts format('%s new release - %s', Time.now.to_datetime.rfc3339, release['title'])
+    puts format('%s got new release - %s', Time.now.to_datetime.rfc3339, release['title'])
 
     redis.set('updated', Time.now.to_datetime.rfc3339)
   end
