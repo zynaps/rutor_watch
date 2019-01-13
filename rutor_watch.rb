@@ -27,9 +27,8 @@ end
 
 redis = Redis::Namespace.new('feeder:rutor_filtered', redis: Redis.new)
 
-redis.set('author', 'zynaps@zynaps.ru')
-redis.set('about', 'http://rutor.info/kino')
-redis.set('title', 'rutor filtered')
+redis.setnx('title', 'rutor filtered')
+redis.setnx('author', 'zynaps@zynaps.ru')
 
 title_re = %r{
   (?<titles>.*)\s+
@@ -91,8 +90,8 @@ loop do
     release['versions'] = release['versions'].split(/[,|]+/).map(&:strip).join(', ')
     release['title'] = format('%s (%d) %s %s | %s | %1.2fGb', *release.values)
     release['content'] = item.description
-    release['url'] = item.link
-    release['pub_date'] = release_date
+    release['link'] = item.link
+    release['updated'] = release_date
     release['id'] = release_uid
 
     redis.lpush('entries', release.to_json)
@@ -100,7 +99,7 @@ loop do
 
     puts format('%s new release - %s', Time.now.to_datetime.rfc3339, release['title'])
 
-    redis.set('updated', Time.now.to_s)
+    redis.set('updated', Time.now.to_datetime.rfc3339)
   end
 
   sleep 60 * 30
