@@ -83,6 +83,8 @@ loop do
 
     next unless (1..3).member?(size)
 
+    # TODO: filter by imdb_id and/or imdb_rating/votes
+
     release = meta.names.map { |name| [name, meta[name]] }.to_h
 
     release['year'] = release['year'].to_i
