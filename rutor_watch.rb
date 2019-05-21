@@ -76,6 +76,10 @@ loop do
 
     next if meta['label'] =~ /-(A|HE)VC/
 
+    next if meta['team'] =~ /KinoGadget/i
+
+    next if meta['versions'] =~ /(IMAX|iPad)/i
+
     details = Nokogiri::HTML(http_get(item.link, follow_redirect: true)) rescue next
 
     size_xpath = "//td[@class='header' and text()='Размер']/following-sibling::td"
