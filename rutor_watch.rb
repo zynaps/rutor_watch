@@ -43,7 +43,7 @@ def release_id_build(item)
 end
 
 loop do
-  feed = RSS::Parser.parse(http_get('http://rutor.info/rss.php?full=1', follow_redirect: true))
+  feed = RSS::Parser.parse(http_get('http://www.rutor.info/rss.php?full=1', follow_redirect: true))
 
   puts format('%s got %s feed items', Time.now.to_datetime.rfc3339, feed.items.size)
 
