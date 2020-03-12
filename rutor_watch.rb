@@ -97,7 +97,7 @@ loop do
     release['versions'] = release['versions'].split(/[,|]+/).map(&:strip).join(', ')
     release['title'] = format('%s (%d) %s %s | %s | %1.2fGb', *release.values)
     release['content'] = item.description
-    release['link'] = item.link
+    release['link'] = item.link.gsub(/tracker.rutor.is/, 'tracker.rutor.info')
     release['updated'] = item.pubDate
     release['id'] = release_id
 
