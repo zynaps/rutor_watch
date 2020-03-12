@@ -1,5 +1,4 @@
 FROM ruby:alpine
-LABEL maintainer="Igor Vinokurov <zynaps@zynaps.ru>"
 
 WORKDIR /
 
