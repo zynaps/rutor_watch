@@ -9,7 +9,9 @@ GEM
     redis (4.1.0)
     redis-namespace (1.6.0)
       redis (>= 3.0.4)
-    rss (0.2.7)
+    rexml (3.2.4)
+    rss (0.2.9)
+      rexml
 
 PLATFORMS
   ruby
