@@ -7,7 +7,7 @@ GEM
     nokogiri (1.9.1)
       mini_portile2 (~> 2.4.0)
     redis (4.1.0)
-    redis-namespace (1.6.0)
+    redis-namespace (1.7.0)
       redis (>= 3.0.4)
     rss (0.2.7)
 
