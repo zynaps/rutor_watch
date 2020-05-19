@@ -2,7 +2,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     httpclient (2.8.3)
-    json (2.1.0)
+    json (2.3.0)
     mini_portile2 (2.4.0)
     nokogiri (1.9.1)
       mini_portile2 (~> 2.4.0)
