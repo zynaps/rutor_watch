@@ -86,7 +86,14 @@ loop do
 
     next unless (1..3).member?(size)
 
-    # TODO: filter by imdb_id and/or imdb_rating/votes
+    if imdb_id
+      ratings = Nokogiri::HTML(http_get(format('https://www.imdb.com/title/tt%09d/ratings', imdb_id), follow_redirect: true)) rescue next
+
+      imdb_rating = ratings.xpath("//div[@class='allText']/div[@class='allText']").text.split(/\n/)[2].scan(/(\d+\.\d+) \/ 10/)[0][0].to_f
+      imdb_votes = ratings.xpath("//div[@class='allText']/div[@class='allText']").text.split(/\n/)[1].delete(' ,').to_i
+
+      next if imdb_rating < 5 && imdb_votes > 1000
+    end
 
     release = meta.names.map { |name| [name, meta[name]] }.to_h
 
