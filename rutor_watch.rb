@@ -28,7 +28,6 @@ end
 redis = Redis::Namespace.new('feeder:rutor_filtered', redis: Redis.new)
 
 redis.setnx('title', 'rutor filtered')
-redis.setnx('author', 'zynaps@zynaps.ru')
 
 title_re = %r{
   (?<titles>.*)\s+
