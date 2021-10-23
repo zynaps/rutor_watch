@@ -2,14 +2,18 @@ GEM
   remote: https://rubygems.org/
   specs:
     httpclient (2.8.3)
-    json (2.1.0)
-    mini_portile2 (2.4.0)
-    nokogiri (1.9.1)
-      mini_portile2 (~> 2.4.0)
-    redis (4.1.0)
-    redis-namespace (1.6.0)
+    json (2.6.1)
+    mini_portile2 (2.6.1)
+    nokogiri (1.12.5)
+      mini_portile2 (~> 2.6.1)
+      racc (~> 1.4)
+    racc (1.6.0)
+    redis (4.5.1)
+    redis-namespace (1.8.1)
       redis (>= 3.0.4)
-    rss (0.2.7)
+    rexml (3.2.5)
+    rss (0.2.9)
+      rexml
 
 PLATFORMS
   ruby
