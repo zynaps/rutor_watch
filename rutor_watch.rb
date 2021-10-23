@@ -35,15 +35,11 @@ title_re = %r{
   (?<versions>.*)
 }x
 
-def release_id_build(item)
-  Digest::MD5.hexdigest([item.link.gsub(%r{.*/torrent/(\d+)}, '\1'), item.pubDate].to_json)
-end
-
 loop do
   feed = RSS::Parser.parse(http_get('http://www.rutor.info/rss.php?full=1', follow_redirect: true))
 
   feed.items.each do |item|
-    release_id = release_id_build(item)
+    release_id = Digest::MD5.hexdigest([item.link.gsub(%r{.*/torrent/(\d+)}, '\1'), item.pubDate].to_json)
 
     next unless redis.setnx(seen_key = format('seen:%s', release_id), 1)
 
@@ -51,11 +47,8 @@ loop do
 
     details = Nokogiri::HTML(item.description)
 
-    imdb_xpath = "//a/@href[contains(., 'imdb.com/title/')]"
-    kpdb_xpath = "//a/@href[contains(., 'kinopoisk.ru/film/')]"
-
-    imdb_id = details.at_xpath(imdb_xpath)&.value&.gsub(%r{.*/tt(\d+)/?$}, '\1')
-    kpdb_id = details.at_xpath(kpdb_xpath)&.value&.gsub(%r{.*/film/.*?-?(\d+)/?$}, '\1')
+    imdb_id = details.at_xpath("//a/@href[contains(., 'imdb.com/title/')]")&.value&.gsub(%r{.*/tt(\d+)/?$}, '\1')
+    kpdb_id = details.at_xpath("//a/@href[contains(., 'kinopoisk.ru/film/')]")&.value&.gsub(%r{.*/film/.*?-?(\d+)/?$}, '\1')
 
     if imdb_id && kpdb_id
       redis.setnx(format('imdb_ids:%s', kpdb_id), imdb_id)
@@ -69,8 +62,7 @@ loop do
 
     details = Nokogiri::HTML(http_get(item.link, follow_redirect: true)) rescue next
 
-    size_xpath = "//td[@class='header' and text()='Размер']/following-sibling::td"
-    size = (details.xpath(size_xpath).text.gsub(/.*\((\d+) Bytes\).*/, '\1').to_f) / 1024**3
+    size = (details.xpath("//td[@class='header' and text()='Размер']/following-sibling::td").text.gsub(/.*\((\d+) Bytes\).*/, '\1').to_f) / 1024**3
 
     next unless (1..3).member?(size)
 
