@@ -63,8 +63,9 @@ loop do
     details = Nokogiri::HTML(http_get(item.link, follow_redirect: true)) rescue next
 
     size = (details.xpath("//td[@class='header' and text()='Размер']/following-sibling::td").text.gsub(/.*\((\d+) Bytes\).*/, '\1').to_f) / 1024**3
+    genres = details.xpath("//table['details']//b[contains(., 'Жанр')]/following-sibling::a/text()").map { |a| a.text.downcase }
 
-    next unless (1..3).member?(size)
+    next unless (1..3).member?(size) && genres.none?('ужасы')
 
     if imdb_id
       ratings = Nokogiri::HTML(http_get(format('https://www.imdb.com/title/tt%09d/ratings', imdb_id), follow_redirect: true)) rescue next
