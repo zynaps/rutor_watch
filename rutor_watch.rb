@@ -6,8 +6,6 @@ require 'httpclient'
 require 'rss'
 require 'nokogiri'
 
-$stdout.sync = true
-
 def http_get(*args)
   cache = Redis::Namespace.new('httpclient', redis: Redis.new)
 
@@ -44,16 +42,12 @@ end
 loop do
   feed = RSS::Parser.parse(http_get('http://www.rutor.info/rss.php?full=1', follow_redirect: true))
 
-  puts format('%s got %s feed items', Time.now.to_datetime.rfc3339, feed.items.size)
-
   feed.items.each do |item|
     release_id = release_id_build(item)
 
     next unless redis.setnx(seen_key = format('seen:%s', release_id), 1)
 
     redis.expire(seen_key, 60 * 60 * 24 * 7)
-
-    puts format('%s new announce - %s', Time.now.to_datetime.rfc3339, item.link)
 
     details = Nokogiri::HTML(item.description)
 
@@ -109,10 +103,6 @@ loop do
 
     redis.lpush('entries', release.to_json)
     redis.ltrim('entries', 0, 99)
-
-    puts format('%s got new release - %s', Time.now.to_datetime.rfc3339, release['title'])
-
-    redis.set('updated', Time.now.to_datetime.rfc3339)
   end
 
   sleep 60 * 30
