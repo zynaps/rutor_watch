@@ -52,12 +52,12 @@ loop do
     imdb_id = details.at_xpath("//a/@href[contains(., 'imdb.com/title/')]")&.value&.gsub(%r{.*/tt(\d+)/?$}, '\1')
     kpdb_id = details.at_xpath("//a/@href[contains(., 'kinopoisk.ru/film/')]")&.value&.gsub(%r{.*/film/.*?-?(\d+)/?$}, '\1')
 
+    movie_ids = Redis::Namespace.new('rutor_watch:movie_ids', redis: Redis.new)
+
     if imdb_id && kpdb_id
-      redis.setnx(format('imdb_ids:%s', kpdb_id), imdb_id)
-      redis.setnx(format('kpdb_ids:%s', imdb_id), kpdb_id)
-    else
-      imdb_id ||= redis.get(format('imdb_ids:%s', kpdb_id))
-      kpdb_id ||= redis.get(format('kpdb_ids:%s', imdb_id))
+      movie_ids.setnx(format('imdb:%s', kpdb_id), imdb_id)
+    elsif not imdb_id && kpdb_id
+      imdb_id = movie_ids.get(format('imdb:%s', kpdb_id))
     end
 
     next unless (meta = item.title.match(title_re))
