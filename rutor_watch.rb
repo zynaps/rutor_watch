@@ -76,15 +76,19 @@ loop do
       imdb_votes = ratings.xpath("//div[@class='allText']/div[@class='allText']").text.split(/\n/)[1].delete(' ,').to_i
 
       next if imdb_rating < 5 && imdb_votes > 1000
+
+      imdb = format('%.1f/%d ', imdb_rating, imdb_votes)
+    else
+      imdb = ''
     end
 
-    release = meta.names.map { |name| [name, meta[name]] }.to_h
+    release = meta.names.map { |name| [name, meta[name]] }.insert(2, ['imdb', imdb]).to_h
 
     release['year'] = release['year'].to_i
     release['titles'] = release['titles'].split('/').map(&:strip).join(' / ')
     release['size'] = size
     release['versions'] = release['versions'].split(/[,|]+/).map(&:strip).join(', ')
-    release['title'] = format('%s (%d) %s %s | %s | %1.2fGb', *release.values)
+    release['title'] = format('%s (%d) %s%s %s | %s | %1.2fGb', *release.values)
     release['content'] = item.description
     release['link'] = item.link
     release['updated'] = item.pubDate
