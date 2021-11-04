@@ -23,9 +23,11 @@ def http_get(*args)
   body
 end
 
-redis = Redis::Namespace.new('feeder:rutor_filtered', redis: Redis.new)
+feed_entries = Redis::Namespace.new('feeder:rutor_filtered', redis: Redis.new)
+torrents_seen = Redis::Namespace.new('rutor_watch:torrents_seen', redis: Redis.new)
+movie_ids = Redis::Namespace.new('rutor_watch:movie_ids', redis: Redis.new)
 
-redis.setnx('title', 'rutor filtered')
+feed_entries.setnx('title', 'rutor filtered')
 
 title_re = %r{
   (?<titles>.*)\s+
@@ -36,14 +38,14 @@ title_re = %r{
 }x
 
 loop do
-  feed = RSS::Parser.parse(http_get('http://www.rutor.info/rss.php?full=1', follow_redirect: true))
+  rss_items = RSS::Parser.parse(http_get('http://www.rutor.info/rss.php?full=1', follow_redirect: true)).items
 
-  feed.items.each do |item|
+  rss_items.each do |item|
     release_id = Digest::MD5.hexdigest([item.link.gsub(%r{.*/torrent/(\d+)}, '\1'), item.pubDate].to_json)
 
-    next unless redis.setnx(seen_key = format('seen:%s', release_id), 1)
+    next unless torrents_seen.setnx(seen_key = format('%s', release_id), 1)
 
-    redis.expire(seen_key, 60 * 60 * 24 * 7)
+    torrents_seen.expire(seen_key, 60 * 60 * 24 * 7)
 
     details = Nokogiri::HTML(item.description)
 
@@ -88,8 +90,8 @@ loop do
     release['updated'] = item.pubDate
     release['id'] = release_id
 
-    redis.lpush('entries', release.to_json)
-    redis.ltrim('entries', 0, 99)
+    feed_entries.lpush('entries', release.to_json)
+    feed_entries.ltrim('entries', 0, 99)
   end
 
   sleep 60 * 30
