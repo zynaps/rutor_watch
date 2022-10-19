@@ -1,16 +1,20 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    connection_pool (2.3.0)
     httpclient (2.8.3)
-    json (2.6.1)
-    mini_portile2 (2.6.1)
-    nokogiri (1.12.5)
-      mini_portile2 (~> 2.6.1)
+    json (2.6.2)
+    mini_portile2 (2.8.0)
+    nokogiri (1.13.9)
+      mini_portile2 (~> 2.8.0)
       racc (~> 1.4)
     racc (1.6.0)
-    redis (4.5.1)
-    redis-namespace (1.8.1)
-      redis (>= 3.0.4)
+    redis (5.0.5)
+      redis-client (>= 0.9.0)
+    redis-client (0.11.1)
+      connection_pool
+    redis-namespace (1.9.0)
+      redis (>= 4)
     rexml (3.2.5)
     rss (0.2.9)
       rexml
@@ -25,3 +29,6 @@ DEPENDENCIES
   redis
   redis-namespace
   rss
+
+BUNDLED WITH
+   2.2.5
