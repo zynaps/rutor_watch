@@ -39,8 +39,12 @@ title_re = %r{
   (?<versions>.*)
 }x
 
+$stdout.sync = true
+
 loop do
   rss_items = RSS::Parser.parse(http_get('http://rutor.is/rss.php?full=1', follow_redirect: true)).items
+
+  new_torrents = new_releases = 0
 
   rss_items.each do |item|
     release_id = Digest::MD5.hexdigest([item.link.gsub(%r{.*/torrent/(\d+)}, '\1'), item.pubDate].to_json)
@@ -48,6 +52,8 @@ loop do
     next unless torrents_seen.setnx(seen_key = format('%s', release_id), 1)
 
     torrents_seen.expire(seen_key, 60 * 60 * 24 * 7)
+
+    new_torrents += 1
 
     details = Nokogiri::HTML(item.description)
 
@@ -96,7 +102,11 @@ loop do
 
     feed_entries.lpush('entries', release.to_json)
     feed_entries.ltrim('entries', 0, 99)
+
+    new_releases += 1
   end
+
+  puts format('Got %d new torrents and discover %d new suitable releases', new_torrents, new_releases)
 
   sleep(60 * 30)
 end
