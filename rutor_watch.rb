@@ -58,7 +58,7 @@ loop do
     details = Nokogiri::HTML(item.description)
 
     imdb_id = details.at_xpath("//a/@href[contains(., 'imdb.com/title/')]")&.value&.gsub(%r{.*/tt(\d+)/?$}, '\1')
-    kpdb_id = details.at_xpath("//a/@href[contains(., 'kinopoisk.ru/film/')]")&.value&.gsub(%r{.*/film/.*?-?(\d+)/?$}, '\1')
+    kpdb_id = details.at_xpath("//a/@href[contains(., 'kinopoisk.ru/')]")&.value&.gsub(%r{.*/film/.*?-?(\d+)/?$}, '\1')
 
     if imdb_id && kpdb_id
       movie_ids.setnx(format('imdb:%s', kpdb_id), imdb_id)
@@ -75,26 +75,13 @@ loop do
 
     next unless (1..3).member?(size) && genres.none?('ужасы')
 
-    if imdb_id
-      ratings = Nokogiri::HTML(http_get(format('https://www.imdb.com/title/tt%09d/ratings', imdb_id), follow_redirect: true)) rescue next
-
-      imdb_rating = ratings.xpath("//div[@class='allText']/div[@class='allText']").text.split(/\n/)[2].scan(/(\d+\.\d+) \/ 10/)[0][0].to_f
-      imdb_votes = ratings.xpath("//div[@class='allText']/div[@class='allText']").text.split(/\n/)[1].delete(' ,').to_i
-
-      next if imdb_rating < 5 && imdb_votes > 1000
-
-      imdb = format('%.1f/%d ', imdb_rating, imdb_votes)
-    else
-      imdb = ''
-    end
-
-    release = meta.names.map { |name| [name, meta[name]] }.insert(2, ['imdb', imdb]).to_h
+    release = meta.names.map { |name| [name, meta[name]] }.to_h
 
     release['year'] = release['year'].to_i
     release['titles'] = release['titles'].split('/').map(&:strip).join(' / ')
     release['size'] = size
     release['versions'] = release['versions'].split(/[,|]+/).map(&:strip).join(', ')
-    release['title'] = format('%s (%d) %s%s %s | %s | %1.2fGb', *release.values)
+    release['title'] = format('%s (%d) %s %s | %s | %1.2fGb', *release.values)
     release['content'] = format('<![CDATA[%s]]', item.description)
     release['link'] = item.link
     release['updated'] = item.pubDate
