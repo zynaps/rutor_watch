@@ -7,14 +7,14 @@ GEM
     httpclient (2.8.3)
     json (2.6.3)
     method_source (1.0.0)
-    mini_portile2 (2.8.1)
-    nokogiri (1.14.3)
-      mini_portile2 (~> 2.8.0)
+    mini_portile2 (2.8.5)
+    nokogiri (1.16.2)
+      mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
     pry (0.14.2)
       coderay (~> 1.1)
       method_source (~> 1.0)
-    racc (1.6.2)
+    racc (1.7.3)
     redis (5.0.6)
       redis-client (>= 0.9.0)
     redis-client (0.14.1)
@@ -39,4 +39,4 @@ DEPENDENCIES
   rss
 
 BUNDLED WITH
-   2.4.10
+   2.5.4
